@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:form_example/controllers/first_form_controller.dart';
 import 'package:form_example/shared/custom_scaffold.dart';
-
 
 class FirstForm extends StatefulWidget {
   const FirstForm({super.key});
@@ -10,63 +10,53 @@ class FirstForm extends StatefulWidget {
 }
 
 class FirstFormState extends State<FirstForm> {
-  final _formKey = GlobalKey<FormState>();
-  final nombreController = TextEditingController();
-  final correoController = TextEditingController();
+  final controller = FirstFormController();
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadUsers(setState);
+  }
 
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
       title: 'Formulario Uno',
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
+          key: controller.formKey,
           autovalidateMode: AutovalidateMode.onUnfocus,
           child: Column(
             children: [
               TextFormField(
-                controller: nombreController,
-                decoration: InputDecoration(labelText: 'Nombre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingrese su nombre';
-                  }
-                  return null;
-                },
+                controller: controller.nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+                validator: controller.validateNombre,
               ),
               TextFormField(
-                controller: correoController,
-                decoration: InputDecoration(labelText: 'Correo'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingrese su correo';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Correo inválido';
-                  }
-                  return null;
-                },
+                controller: controller.correoController,
+                decoration: const InputDecoration(labelText: 'Correo'),
+                validator: controller.validateCorreo,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
-                child: Text('Enviar'),
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Formulario válido',
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
-                        ),
-                        backgroundColor:
-                            Colors.green,
-                      ),
+                onPressed: () => controller.submit(context, setState),
+                child: const Text('Enviar'),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: controller.userList.length,
+                  itemBuilder: (context, index) {
+                    final user = controller.userList[index];
+                    return ListTile(
+                      title: Text(user.name),
+                      subtitle: Text(user.email),
+                      leading: CircleAvatar(child: Text(user.name[0])),
                     );
-                  }
-                },
+                  },
+                ),
               ),
             ],
           ),
